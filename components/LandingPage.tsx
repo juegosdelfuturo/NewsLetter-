@@ -160,9 +160,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSignup }) => {
 
             <div className="flex items-center justify-center gap-6 pt-2">
               <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                <Shield className="w-3.5 h-3.5" /> Beehiiv Verified
-              </div>
-              <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
                 <CheckCircle2 className="w-3.5 h-3.5" /> 100% Educación
               </div>
             </div>
