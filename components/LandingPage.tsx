@@ -114,10 +114,10 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Email enviado</h2>
-                  <p className="text-slate-500 text-lg font-bold">Por favor, revisa tu correo electrónico para confirmar tu suscripción.</p>
+                  <p className="text-slate-500 text-lg font-bold">mira tu correo con las plantillas</p>
                 </div>
                 <div className="pt-4">
-                  <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Registro completado con éxito</span>
+                  <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Acceso concedido</span>
                 </div>
               </div>
             ) : (
