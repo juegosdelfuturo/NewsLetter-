@@ -1,228 +1,174 @@
 
-import React, { useState, useEffect } from 'react';
-import { Zap, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Zap, ArrowRight, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ADOPTION_DATA = [
-  { name: '2021', value: 30 },
-  { name: '2022', value: 35 },
-  { name: '2023', value: 45 },
+  { name: '2021', value: 31 },
+  { name: '2022', value: 34 },
+  { name: '2023', value: 46 },
   { name: '2024', value: 58 },
 ];
 
-const MARKET_VALUE_DATA = [
-  { name: '22', value: 40 },
-  { name: '23', value: 67 },
-  { name: '24', value: 137 },
-  { name: '25', value: 250 },
-];
-
-const EFFICIENCY_DATA = [
-  { name: 'Manual', value: 100 },
-  { name: 'Híbrido', value: 45 },
-  { name: 'IA Core', value: 12 },
-];
-
 export const LandingPage: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [keyword, setKeyword] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-  
-  const [chartIndex, setChartIndex] = useState(0);
-  const charts = [
-    { title: 'Adopción Global', subtitle: '% de empresas integrando IA', data: ADOPTION_DATA, type: 'area', color: '#2563eb' },
-    { title: 'Mercado Proyectado', subtitle: 'Valor en Billones USD', data: MARKET_VALUE_DATA, type: 'area', color: '#06b6d4' },
-    { title: 'Eficiencia Operativa', subtitle: 'Tiempo por tarea (Horas)', data: EFFICIENCY_DATA, type: 'bar', color: '#6366f1' },
-  ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setChartIndex((prev) => (prev + 1) % charts.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  const [formData, setFormData] = useState({ name: '', email: '', keyword: '' });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !keyword) return;
-
-    setIsProcessing(true);
-    setStatus('idle');
-    setErrorMessage('');
-
+    setStatus('loading');
+    
     try {
-      const { error: dbError } = await supabase.from('leads').insert([
-        { full_name: name, email, keyword }
+      const { error } = await supabase.from('leads').insert([
+        { 
+          full_name: formData.name, 
+          email: formData.email, 
+          keyword: formData.keyword 
+        }
       ]);
 
-      if (dbError && dbError.code === '23505') {
-        throw new Error('Este correo ya está registrado en nuestro sistema.');
-      } else if (dbError) {
-        throw dbError;
-      }
-
+      if (error) throw error;
       setStatus('success');
     } catch (err: any) {
-      console.error('Error:', err);
+      console.error(err);
+      setErrorMsg(err.message === 'duplicate key value violates unique constraint "leads_email_key"' 
+        ? 'Este correo ya está registrado.' 
+        : 'Error al conectar con el servidor.');
       setStatus('error');
-      setErrorMessage(err.message || 'Error al procesar la solicitud.');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
-  const activeChart = charts[chartIndex];
-
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col pt-12 md:pt-24 px-6 relative overflow-hidden">
-      {/* Luces de fondo decorativas */}
-      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/40 blur-[130px] rounded-full -z-10" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-100/40 blur-[130px] rounded-full -z-10" />
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-6">
+      {/* Background Elements */}
+      <div className="bg-blur bg-blue-200 top-[-10%] right-[-10%]" />
+      <div className="bg-blur bg-indigo-200 bottom-[-10%] left-[-10%]" />
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
         
-        {/* Lado Izquierdo: Hero + Formulario */}
-        <div className="space-y-12">
+        {/* Left Side: Content and Form */}
+        <div className="space-y-10">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-200">
+            <div className="bg-[#2563eb] p-2 rounded-xl shadow-lg shadow-blue-200">
               <Zap className="w-6 h-6 text-white fill-current" />
             </div>
-            <span className="text-2xl font-black text-slate-900 tracking-tighter uppercase">EDUCATE<span className="text-blue-600">SOBREIA</span></span>
+            <span className="text-2xl font-black tracking-tighter uppercase text-[#0f172a]">
+              EDUCATE<span className="text-[#2563eb]">SOBREIA</span>
+            </span>
           </div>
 
           <div className="space-y-6">
-            <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter">
+            <h1 className="text-6xl md:text-8xl font-black text-[#0f172a] leading-[0.9] tracking-tighter">
               Domina la IA, <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">protege tu futuro</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563eb] to-[#6366f1]">protege tu futuro</span>
             </h1>
-            <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium">
+            <p className="text-xl text-slate-500 max-w-lg font-medium leading-relaxed">
               La newsletter técnica para mentes que no se conforman. Datos crudos, casos de éxito y estrategias de monetización.
             </p>
           </div>
 
-          <div className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8 relative overflow-hidden transition-all duration-500 min-h-[480px] flex flex-col justify-center">
+          {/* Form Card */}
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-50 relative overflow-hidden min-h-[460px] flex flex-col justify-center transition-all duration-700">
             {status === 'success' ? (
-              <div className="text-center py-10 space-y-6 animate-in fade-in zoom-in duration-500">
+              <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
                 <div className="flex justify-center">
-                  <div className="bg-green-100 p-8 rounded-full inline-block shadow-lg shadow-green-100/50">
+                  <div className="bg-green-100 p-6 rounded-full inline-block">
                     <CheckCircle2 className="w-16 h-16 text-green-600" />
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Email enviado</h2>
                   <p className="text-slate-500 text-lg font-bold">mira tu correo con las plantillas</p>
                 </div>
-                <div className="pt-4">
-                  <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Acceso concedido</span>
+                <div className="flex justify-center gap-2 pt-4">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Suscripción activa</span>
                 </div>
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">RECIBE TU PLANTILLA</h2>
+                <h3 className="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight">RECIBE TU PLANTILLA</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-4">
-                    <input 
-                      type="text" required placeholder="Tu nombre completo"
-                      value={name} onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold"
-                    />
-                    <input 
-                      type="email" required placeholder="Tu mejor correo electrónico"
-                      value={email} onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold"
-                    />
-                    <input 
-                      type="text" required placeholder="¿Qué quieres aprender? (ej. SEO, Chatbots)"
-                      value={keyword} onChange={(e) => setKeyword(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold"
-                    />
-                  </div>
-
+                  <input 
+                    required type="text" placeholder="Tu nombre completo"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                  />
+                  <input 
+                    required type="email" placeholder="Tu mejor correo electrónico"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
+                  />
+                  <input 
+                    required type="text" placeholder="¿Qué quieres aprender? (ej. SEO, Chatbots)"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    value={formData.keyword} onChange={e => setFormData({...formData, keyword: e.target.value})}
+                  />
                   <button 
-                    disabled={isProcessing}
+                    disabled={status === 'loading'}
                     className="w-full py-5 rounded-2xl bg-[#0f172a] text-white hover:bg-black font-black text-xl flex items-center justify-center gap-3 transition-all shadow-xl hover:scale-[1.01] uppercase tracking-tighter disabled:opacity-50"
                   >
-                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : 'RECIBE LAS PLANTILLAS'}
-                    {!isProcessing && <ArrowRight className="w-6 h-6" />}
+                    {status === 'loading' ? <Loader2 className="w-6 h-6 animate-spin" /> : 'RECIBE LAS PLANTILLAS'}
+                    {status !== 'loading' && <ArrowRight className="w-6 h-6" />}
                   </button>
                 </form>
-
                 {status === 'error' && (
-                  <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-black uppercase tracking-widest">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" /> {errorMessage}
+                  <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-2xl flex items-center gap-3 text-sm font-bold uppercase tracking-tight">
+                    <AlertCircle className="w-5 h-5" /> {errorMsg}
                   </div>
                 )}
-                
-                <div className="flex items-center justify-center pt-2">
-                  <div className="flex items-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> SUPABASE SECURED
-                  </div>
+                <div className="flex items-center justify-center mt-6 gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SUPABASE SECURED</span>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Lado Derecho: Gráficos de Datos */}
-        <div className="relative">
-          <div className="bg-white p-10 h-[580px] flex flex-col rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 relative overflow-hidden group">
-            
-            <div className="flex justify-between items-start mb-10">
+        {/* Right Side: Charts Card */}
+        <div className="relative lg:block">
+          <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-slate-50 h-[600px] flex flex-col">
+            <div className="mb-10 flex justify-between items-start">
               <div>
-                <h4 className="font-black text-slate-900 text-3xl tracking-tighter leading-none mb-2">{activeChart.title}</h4>
-                <p className="text-slate-400 text-sm font-medium">{activeChart.subtitle}</p>
+                <h4 className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-2">Adopción Global</h4>
+                <p className="text-slate-400 font-bold text-sm tracking-tight">% de empresas integrando IA</p>
               </div>
               <div className="flex gap-2">
-                {charts.map((_, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => setChartIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${chartIndex === i ? 'w-6 bg-blue-600' : 'bg-slate-200'}`}
-                  />
-                ))}
+                <div className="w-8 h-2 bg-blue-600 rounded-full" />
+                <div className="w-2 h-2 bg-slate-200 rounded-full" />
+                <div className="w-2 h-2 bg-slate-200 rounded-full" />
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 w-full animate-in fade-in slide-in-from-right-4 duration-700">
+            <div className="flex-1 w-full min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                {activeChart.type === 'area' ? (
-                  <AreaChart data={activeChart.data}>
-                    <defs>
-                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={activeChart.color} stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor={activeChart.color} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 'bold'}} />
-                    <YAxis fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 'bold'}} />
-                    <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
-                    <Area type="monotone" dataKey="value" stroke={activeChart.color} strokeWidth={6} fillOpacity={1} fill="url(#colorValue)" />
-                  </AreaChart>
-                ) : (
-                  <BarChart data={activeChart.data}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 'bold'}} />
-                    <YAxis fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 'bold'}} />
-                    <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
-                    <Bar dataKey="value" fill={activeChart.color} radius={[12, 12, 0, 0]} />
-                  </BarChart>
-                )}
+                <AreaChart data={ADOPTION_DATA}>
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: '900'}} />
+                  <YAxis fontSize={12} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: '900'}} />
+                  <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: 'bold' }} />
+                  <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={5} fillOpacity={1} fill="url(#colorValue)" />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-            
-            <div className="mt-10 grid grid-cols-2 gap-6">
-              <div className="p-7 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-600/20">
-                <p className="text-[10px] font-black uppercase opacity-60 mb-1">Crecimiento</p>
-                <p className="text-3xl font-black tracking-tighter">x3.2</p>
+
+            <div className="mt-12 grid grid-cols-2 gap-6">
+              <div className="bg-[#2563eb] p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-500/30">
+                <p className="text-[10px] font-black uppercase opacity-60 mb-1 tracking-widest">CRECIMIENTO</p>
+                <p className="text-4xl font-black tracking-tighter">x3.2</p>
               </div>
-              <div className="p-7 bg-[#0f172a] rounded-[2rem] text-white shadow-xl shadow-slate-900/20">
-                <p className="text-[10px] font-black uppercase opacity-60 mb-1">Eficiencia</p>
-                <p className="text-3xl font-black tracking-tighter">+65%</p>
+              <div className="bg-[#0f172a] p-8 rounded-[2.5rem] text-white shadow-xl shadow-slate-900/30">
+                <p className="text-[10px] font-black uppercase opacity-60 mb-1 tracking-widest">EFICIENCIA</p>
+                <p className="text-4xl font-black tracking-tighter">+65%</p>
               </div>
             </div>
           </div>
@@ -230,8 +176,8 @@ export const LandingPage: React.FC = () => {
 
       </div>
 
-      <footer className="mt-24 py-16 text-center border-t border-slate-100 bg-white/40 backdrop-blur-md">
-        <p className="text-slate-400 text-[10px] font-black tracking-[0.5em] uppercase">
+      <footer className="absolute bottom-8 left-0 right-0 text-center">
+        <p className="text-slate-400 text-[9px] font-black tracking-[0.6em] uppercase opacity-50">
           © 2024 — EDUCATESOBREIA — LA NUEVA ERA DE LA INFORMACIÓN
         </p>
       </footer>
