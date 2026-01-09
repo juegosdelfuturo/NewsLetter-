@@ -102,7 +102,7 @@ export const LandingPage: React.FC = () => {
                     value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
                   />
                   <input 
-                    required type="text" placeholder="¿Qué quieres aprender? (ej. SEO, Chatbots)"
+                    required type="text" placeholder="Introduce la palabra que has visto en el video"
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-5 px-6 font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                     value={formData.keyword} onChange={e => setFormData({...formData, keyword: e.target.value})}
                   />
@@ -178,7 +178,7 @@ export const LandingPage: React.FC = () => {
 
       <footer className="absolute bottom-8 left-0 right-0 text-center">
         <p className="text-slate-400 text-[9px] font-black tracking-[0.6em] uppercase opacity-50">
-          © 2024 — EDUCATESOBREIA — LA NUEVA ERA DE LA INFORMACIÓN
+          © 2026 — EDUCATESOBREIA — LA NUEVA ERA DE LA INFORMACIÓN
         </p>
       </footer>
     </div>
